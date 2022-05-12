@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="NorthwindDal.Model.Customer">
+    <Position X="1.5" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAQACAgAAAAAAIIAAgAAAAAAIAABACAAACIAAAAAA=</HashCode>
+      <FileName>Model\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NorthwindDal.Model.Order">
+    <Position X="3.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAECAABAAAAAAAAAABACICABAAAEAhBAAAAEAAACACA=</HashCode>
+      <FileName>Model\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NorthwindDal.Model.OrderDetail">
+    <Position X="5" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>MAECAAAAAAgAAAAAAAAAAAAAAAAAAAAAAgAAgAAAAAA=</HashCode>
+      <FileName>Model\OrderDetail.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NorthwindDal.Model.Product">
+    <Position X="6.75" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IEACAAAAAAAAAgAAABACQAAAAAEAAAAAAAAAAAgoAAA=</HashCode>
+      <FileName>Model\Product.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
