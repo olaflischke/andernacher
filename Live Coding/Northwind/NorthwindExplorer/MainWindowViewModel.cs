@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NorthwindDal;
 using NorthwindDal.Model;
+using NorthwindDal.Repository;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,10 +17,14 @@ namespace NorthwindExplorer
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        private UnitOfWork unitOfWork;
+
         public MainWindowViewModel()
         {
             this.AddCustomer = new RelayCommand(p => CanAddCustomer(), a => AddCustomerAction());
             this.EditCustomer = new RelayCommand(p => CanEditCustomer(), a => EditCustomerAction());
+
+            this.unitOfWork = UnitOfWork.Create(); //new UnitOfWork();
         }
 
         private bool CanEditCustomer()
@@ -35,52 +41,31 @@ namespace NorthwindExplorer
             AddEditCustomer editCustomer = new AddEditCustomer(this.SelectedCustomer);
             if (editCustomer.ShowDialog() == true)
             {
-                using (NorthwindContext context = new NorthwindContext())
+                try
                 {
-                    try
+                    unitOfWork.CustomerRepository.Update(this.SelectedCustomer);
+                    unitOfWork.Save();
+
+                }
+                catch (NorthwindDalException ex)
+                {
+                    if (ex.InnerException is DbUpdateConcurrencyException)
                     {
-                        // INSERT!
-                        //context.Add(editCustomer.Customer);
-
-                        // Manuelles Attachen, State setzen
-                        //context.Attach(editCustomer.Customer);
-                        //context.Entry(editCustomer.Customer).State = EntityState.Modified;
-
-                        // Update(): Attach + State=Modified, Achtung: Abhängige Elemente ggf. auch Modified
-                        context.Update(editCustomer.Customer);
-
-                        context.SaveChanges();
-
+                        // TODO: Meldung an User etc.
+                        // Customer neu laden
+                        this.SelectedCustomer = unitOfWork.CustomerRepository.GetById(this.SelectedCustomer.CustomerId);
                     }
-                    catch (DbUpdateConcurrencyException ex)
-                    {
-                        // Benutzer informieren
+                }
 
-                        // Nicht speichern, Änderungen verwerfen (Database wins)
-                        context.Entry(this.SelectedCustomer).Reload();
+                catch (Exception ex)
+                {
 
-                        // oder
-                        // Doch speichern (Client wins)
-                        context.Entry(this.SelectedCustomer).OriginalValues.SetValues(context.Entry(this.SelectedCustomer).GetDatabaseValues());
-                        context.SaveChanges();
-                    }
+                    throw;
                 }
             }
             else
             {
-                using (NorthwindContext context = new NorthwindContext())
-                {
-                    // Customer aus der DB aktualisieren
-                    context.Entry(this.SelectedCustomer).Reload();
-
-                    // ReLoad macht etwa dieses hier:
-                    //context.Entry(this.SelectedCustomer).CurrentValues.SetValues(context.Entry(this.SelectedCustomer).GetDatabaseValues());
-                    //context.Entry(this.SelectedCustomer).State = EntityState.Unchanged;
-
-
-                    // Customer im Speicher zurücksetzen (nur bei langlebigen Contexten!)
-                    //context.Entry(this.SelectedCustomer).CurrentValues.SetValues(context.Entry(this.SelectedCustomer).OriginalValues);
-                }
+                this.SelectedCustomer = unitOfWork.CustomerRepository.GetById(this.SelectedCustomer.CustomerId);
             }
         }
 
@@ -92,15 +77,12 @@ namespace NorthwindExplorer
         private void AddCustomerAction()
         {
             Customer customer = new Customer();
-            AddEditCustomer addCustomer=new AddEditCustomer(customer);
+            AddEditCustomer addCustomer = new AddEditCustomer(customer);
 
             if (addCustomer.ShowDialog() == true)
             {
-                using (NorthwindContext context = new NorthwindContext())
-                {
-                    context.Customers.Add(customer);
-                    context.SaveChanges();
-                }
+                unitOfWork.CustomerRepository.Insert(customer);
+                unitOfWork.Save();
             }
         }
 

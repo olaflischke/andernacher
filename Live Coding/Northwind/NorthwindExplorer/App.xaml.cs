@@ -28,7 +28,7 @@ namespace NorthwindExplorer
 
             this.Configuration = builder.Build();
 
-            Console.WriteLine(Configuration.GetConnectionString("BloggingDatabase"));
+            Console.WriteLine(Configuration.GetConnectionString("NorthwindConString"));
 
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);

@@ -14,19 +14,17 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.EntityFrameworkCore;
-using NorthwindDal.Repository;
 
 namespace NorthwindExplorer
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow_alt : Window
     {
-        //NorthwindContext context = new NorthwindContext(); // Hier besser nicht!
         MainWindowViewModel viewModel = new MainWindowViewModel();
 
-        public MainWindow()
+        public MainWindow_alt()
         {
             InitializeComponent();
 
@@ -36,19 +34,21 @@ namespace NorthwindExplorer
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // select distinct country from Customers
-            UnitOfWork unitOfWork = UnitOfWork.Create();  //new UnitOfWork())
-                                                          //var qCountries = northwindContext.Customers.Select(x => GetCountryFromCustomer(x)).Distinct();
-            var qCountries = unitOfWork.CustomerRepository.Get().Select(x => x.Country).Distinct();
-
-            // LINQ: Deferred Execution - Query wird erst ausgeführt bei Zugriff auf die Ergebnismenge (hier: qCountries)
-            foreach (string item in qCountries)
+            using (NorthwindContext northwindContext = new NorthwindContext())
             {
-                TreeViewItem treeViewItem = new TreeViewItem() { Header = item };
-                treeViewItem.Items.Add(new TreeViewItem());
-                treeViewItem.Expanded += this.TreeViewItem_Expanded;
-                trvCustomers.Items.Add(treeViewItem);
-            }
+                //var qCountries = northwindContext.Customers.Select(x => GetCountryFromCustomer(x)).Distinct();
+                var qCountries = northwindContext.Customers.Select(x => x.Country).Distinct();
 
+                // LINQ: Deferred Execution - Query wird erst ausgeführt bei Zugriff auf die Ergebnismenge (hier: qCountries)
+                foreach (string item in qCountries)
+                {
+                    TreeViewItem treeViewItem = new TreeViewItem() { Header = item };
+                    treeViewItem.Items.Add(new TreeViewItem());
+                    treeViewItem.Expanded += this.TreeViewItem_Expanded;
+                    trvCustomers.Items.Add(treeViewItem);
+                }
+
+            }
         }
 
         private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
@@ -60,16 +60,18 @@ namespace NorthwindExplorer
 
                 if (country != null)
                 {
-                    UnitOfWork unitOfWork = UnitOfWork.Create();
-                    var qCustomersByThisCountry = unitOfWork.CustomerRepository.Get(cu => cu.Country == country)
-                                                                    .Select(cu => new { cu.CompanyName, cu.CustomerId });
-
-                    foreach (var item in qCustomersByThisCountry)
+                    using (NorthwindContext context = new NorthwindContext())
                     {
-                        TreeViewItem tviCustomer = new TreeViewItem() { Header = item.CompanyName, Tag = item.CustomerId };
-                        tviCustomer.Selected += this.TreeViewCustomer_Selected;
+                        var qCustomersByThisCountry = context.Customers.Where(x => x.Country == country)
+                                                                        .Select(cu => new { cu.CompanyName, cu.CustomerId });
 
-                        land.Items.Add(tviCustomer);
+                        foreach (var item in qCustomersByThisCountry)
+                        {
+                            TreeViewItem tviCustomer = new TreeViewItem() { Header = item.CompanyName, Tag = item.CustomerId };
+                            tviCustomer.Selected += this.TreeViewCustomer_Selected;
+
+                            land.Items.Add(tviCustomer);
+                        }
                     }
 
                 }
@@ -82,7 +84,6 @@ namespace NorthwindExplorer
             {
                 string customerId = customerNode.Tag.ToString();
 
-                // TODO: UnitOfWork hier auch
                 using (NorthwindContext context = new NorthwindContext())
                 {
 
